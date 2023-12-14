@@ -4,7 +4,7 @@ import { spawn, exec } from 'child_process'
 import process from 'process'
 import isElevated from 'native-is-elevated'
 
-import sudoPrompt from '@vscode/sudo-prompt'
+import sudoPrompt from 'sudo-prompt'
 
 export function handleProcessIPCs() {
   ipcMain.handle(ProcessRoute.spawn, (events, command, args) => {
@@ -13,7 +13,6 @@ export function handleProcessIPCs() {
 
   ipcMain.handle(ProcessRoute.sudoExec, (events, command, args) => {
     // Under admin, run without requesting
-
     let isAdmin: boolean
     if (process.platform === 'win32') {
       isAdmin = isElevated()
@@ -21,7 +20,6 @@ export function handleProcessIPCs() {
       isAdmin = process?.getuid?.() === 0
     }
     console.log(isAdmin)
-
     if (isAdmin) {
       console.log('running under root already')
       exec(command)
@@ -36,8 +34,12 @@ export function handleProcessIPCs() {
         console.log('request permission and run')
         if (error) console.error(error)
         else {
-          if (stdout) console.log('stdout: ' + stdout)
-          if (stderr) console.log('stderr: ' + stderr)
+          if (stdout) {
+            console.log('stdout: ' + stdout)
+          }
+          if (stderr) {
+            console.log('stderr: ' + stderr)
+          }
         }
       }
     )
