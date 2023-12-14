@@ -18,6 +18,7 @@ import { handleExtensionIPCs } from './handlers/extension'
 import { handleAppIPCs } from './handlers/app'
 import { handleAppUpdates } from './handlers/update'
 import { handleFsIPCs } from './handlers/fs'
+import { handleProcessIPCs } from './handlers/process'
 
 app
   .whenReady()
@@ -80,4 +81,5 @@ function handleIPCs() {
   handleDownloaderIPCs()
   handleExtensionIPCs()
   handleAppIPCs()
+  handleProcessIPCs()
 }

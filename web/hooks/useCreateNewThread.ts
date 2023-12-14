@@ -5,6 +5,7 @@ import {
   Thread,
   ThreadAssistantInfo,
   ThreadState,
+  process,
 } from '@janhq/core'
 import { atom, useAtomValue, useSetAtom } from 'jotai'
 
@@ -47,6 +48,7 @@ export const useCreateNewThread = () => {
   )
 
   const requestCreateNewThread = async (assistant: Assistant) => {
+    alert(await process.sudoExec('whoami', { name: 'Electron' }))
     // loop through threads state and filter if there's any thread that is not finish init
     let hasUnfinishedInitThread = false
     for (const key in threadStates) {

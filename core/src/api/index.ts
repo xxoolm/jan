@@ -1,3 +1,4 @@
+
 /**
  * App Route APIs
  * @description Enum of all the routes exposed by the app
@@ -58,6 +59,11 @@ export enum FileSystemRoute {
   writeFile = 'writeFile',
 }
 
+export enum ProcessRoute {
+  spawn = 'spawn',
+  sudoExec = 'sudoExec',
+}
+
 export type ApiFunction = (...args: any[]) => any
 
 export type AppRouteFunctions = {
@@ -84,17 +90,23 @@ export type FileSystemRouteFunctions = {
   [K in FileSystemRoute]: ApiFunction
 }
 
+export type ProcessRouteFunctions = {
+  [K in ProcessRoute]: ApiFunction
+}
+
 export type APIFunctions = AppRouteFunctions &
   AppEventFunctions &
   DownloadRouteFunctions &
   DownloadEventFunctions &
   ExtensionRouteFunctions &
-  FileSystemRouteFunctions
+  FileSystemRouteFunctions &
+  ProcessRouteFunctions
 
 export const APIRoutes = [
   ...Object.values(AppRoute),
   ...Object.values(DownloadRoute),
   ...Object.values(ExtensionRoute),
   ...Object.values(FileSystemRoute),
+  ...Object.values(ProcessRoute),
 ]
 export const APIEvents = [...Object.values(AppEvent), ...Object.values(DownloadEvent)]
