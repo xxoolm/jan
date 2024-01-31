@@ -30,11 +30,9 @@ If applicable, add screenshots to help explain your issue.
 - RAM: [e.g., 8GB, 16GB]
 - Any additional relevant hardware specifics: [e.g., Graphics card, SSD/HDD]
 
-**Logs**
-If the cause of the error is not clear, kindly provide your usage logs:
-- `tail -n 50 ~/jan/logs/app.log` if you are using the UI
-- `tail -n 50 ~/jan/logs/server.log` if you are using the local api server
-Making sure to redact any private information.
+**Logs** 
+- [Collect usage logs guideline](https://jan.ai/troubleshooting/how-to-get-error-logs/)
+- Making sure to redact any private information.
 
 **Additional context**
 Add any other context or information that could be helpful in diagnosing the problem.
