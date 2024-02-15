@@ -7,14 +7,16 @@
       "core",
       "electron",
       "web",
-      "server"
+      "server",
+      "tauri"
     ],
     "nohoist": [
       "uikit",
       "core",
       "electron",
       "web",
-      "server"
+      "server",
+      "tauri"
     ]
   },
   "scripts": {

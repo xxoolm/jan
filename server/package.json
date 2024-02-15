@@ -2,6 +2,7 @@
   "name": "@janhq/server",
   "version": "0.1.3",
   "main": "build/index.js",
+  "bin": "build/index.js",
   "types": "build/index.d.ts",
   "author": "Jan <service@jan.ai>",
   "license": "AGPL-3.0",
@@ -14,7 +15,8 @@
     "lint": "eslint . --ext \".js,.jsx,.ts,.tsx\"",
     "test:e2e": "playwright test --workers=1",
     "dev": "tsc --watch & node --watch build/main.js",
-    "build": "tsc"
+    "build": "tsc",
+    "build:bundle": "esbuild main.ts --bundle --platform=node --outfile=jan-server.js"
   },
   "dependencies": {
     "@alumna/reflect": "^1.1.3",
@@ -27,19 +29,29 @@
     "@npmcli/arborist": "^7.3.1",
     "dotenv": "^16.3.1",
     "fastify": "^4.24.3",
-    "request": "^2.88.2",
     "fetch-retry": "^5.0.6",
-    "tcp-port-used": "^1.0.2",
-    "request-progress": "^3.0.0"
+    "request": "^2.88.2",
+    "request-progress": "^3.0.0",
+    "tcp-port-used": "^1.0.2"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.5",
     "@types/npmcli__arborist": "^5.6.4",
+    "@types/tcp-port-used": "^1.0.4",
     "@typescript-eslint/eslint-plugin": "^6.7.3",
     "@typescript-eslint/parser": "^6.7.3",
+    "esbuild": "^0.20.0",
     "eslint-plugin-react": "^7.33.2",
+    "execa": "^5.1.1",
+    "ora": "^6.1.2",
+    "pkg": "^5.8.1",
+    "rollup": "^2.38.5",
+    "rollup-plugin-commonjs": "^9.1.8",
+    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-sourcemaps": "^0.6.3",
+    "rollup-plugin-typescript2": "^0.36.0",
     "run-script-os": "^1.1.6",
-    "@types/tcp-port-used": "^1.0.4",
     "typescript": "^5.2.2"
   }
 }
