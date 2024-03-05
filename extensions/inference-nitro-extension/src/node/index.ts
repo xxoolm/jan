@@ -360,6 +360,15 @@ function spawnNitroProcess(): Promise<any> {
 
     subprocess.stderr.on('data', (data: any) => {
       log(`[NITRO]::Error: ${data}`)
+      // Application specific error handling
+      if (
+        typeof data.includes === 'function' &&
+        data.includes(
+          'llama_model_load: error loading model: failed to allocate buffer'
+        )
+      ) {
+        reject('OUT_OF_MEMORY')
+      }
     })
 
     subprocess.on('close', (code: any) => {

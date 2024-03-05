@@ -18,6 +18,7 @@ const ErrorMessage = ({ message }: { message: ThreadMessage }) => {
   const setModalTroubleShooting = useSetAtom(modalTroubleShootingAtom)
   const loadModelError = useAtomValue(loadModelErrorAtom)
   const PORT_NOT_AVAILABLE = 'PORT_NOT_AVAILABLE'
+  const OUT_OF_MEMORY = 'OUT_OF_MEMORY'
 
   const regenerateMessage = async () => {
     const lastMessageIndex = messages.length - 1
@@ -63,12 +64,14 @@ const ErrorMessage = ({ message }: { message: ThreadMessage }) => {
               </p>
               <ModalTroubleShooting />
             </div>
+          ) : loadModelError === OUT_OF_MEMORY ? (
+            <p>Oops! Model size exceeds available RAM. Consider selecting a</p>
           ) : (
             <div
               key={message.id}
               className="flex flex-col items-center text-center text-sm font-medium text-gray-500"
             >
-              <p>{`Apologies, something’s amiss!`}</p>
+              <p>Apologies, something’s amiss!</p>
               <p>
                 Jan’s in beta. Access&nbsp;
                 <span
