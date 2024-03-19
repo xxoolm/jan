@@ -1,6 +1,5 @@
 import React from 'react'
 
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 import { AiOutlineGithub, AiOutlineTwitter } from 'react-icons/ai'
 import { BiLogoDiscordAlt, BiLogoLinkedin } from 'react-icons/bi'
 import { useForm } from 'react-hook-form'
@@ -126,10 +125,6 @@ export default function Footer() {
     },
   })
 
-  const {
-    siteConfig: { customFields },
-  } = useDocusaurusContext()
-
   const onSubmit = (data) => {
     const { email } = data
     const options = {
@@ -137,7 +132,7 @@ export default function Footer() {
       headers: {
         'accept': 'application/json',
         'content-type': 'application/json',
-        'api-key': customFields.apiKeyBrevo,
+        // 'api-key': customFields.apiKeyBrevo,
       },
       body: JSON.stringify({
         updateEnabled: false,

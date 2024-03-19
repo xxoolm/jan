@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import DownloadApp from '@site/src/containers/DownloadApp'
+
 import { useForm } from 'react-hook-form'
 
 import useBaseUrl from '@docusaurus/useBaseUrl'
@@ -19,8 +19,6 @@ import { RiStarSFill } from 'react-icons/ri'
 import Dropdown from '@site/src/containers/Elements/dropdown'
 
 import useIsBrowser from '@docusaurus/useIsBrowser'
-
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -96,10 +94,6 @@ export default function Home() {
     },
   })
 
-  const {
-    siteConfig: { customFields },
-  } = useDocusaurusContext()
-
   const onSubmit = (data) => {
     const { email } = data
     const options = {
@@ -107,7 +101,7 @@ export default function Home() {
       headers: {
         'accept': 'application/json',
         'content-type': 'application/json',
-        'api-key': customFields.apiKeyBrevo,
+        // 'api-key': customFields.apiKeyBrevo,
       },
       body: JSON.stringify({
         updateEnabled: false,
