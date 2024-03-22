@@ -22,7 +22,27 @@ export abstract class AIEngine extends BaseExtension {
    * On extension load, subscribe to events.
    */
   onLoad() {
+    events.on(ModelEvent.OnModelInit, (model: Model) => this.loadModel(model))
+    events.on(ModelEvent.OnModelStop, (model: Model) => this.unloadModel(model))
+
     this.prePopulateModels()
+  }
+
+  /**
+   * Load the model.
+   */
+  async loadModel(model: Model): Promise<any> {
+    if (model.engine.toString() !== this.provider) return Promise.resolve()
+    events.emit(ModelEvent.OnModelReady, model)
+    return Promise.resolve()
+  }
+  /**
+   * Stops the model.
+   */
+  async unloadModel(model?: Model): Promise<any> {
+    if (model?.engine && model.engine.toString() !== this.provider) return Promise.resolve()
+    events.emit(ModelEvent.OnModelStopped, model ?? {})
+    return Promise.resolve()
   }
 
   /**

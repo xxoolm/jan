@@ -65,7 +65,6 @@ export default function useSendChatMessage() {
   const currentMessages = useAtomValue(getCurrentChatMessagesAtom)
   const selectedModel = useAtomValue(selectedModelAtom)
   const { activeModel, startModel } = useActiveModel()
-  const setQueuedMessage = useSetAtom(queuedMessageAtom)
   const loadModelFailed = useAtomValue(loadModelErrorAtom)
 
   const modelRef = useRef<Model | undefined>()
@@ -78,6 +77,7 @@ export default function useSendChatMessage() {
   const [fileUpload, setFileUpload] = useAtom(fileUploadAtom)
   const setIsGeneratingResponse = useSetAtom(isGeneratingResponseAtom)
   const activeThreadRef = useRef<Thread | undefined>()
+  const setQueuedMessage = useSetAtom(queuedMessageAtom)
 
   const selectedModelRef = useRef<Model | undefined>()
 
@@ -142,10 +142,7 @@ export default function useSendChatMessage() {
       activeThreadRef.current.assistants[0].model.id
 
     if (modelRef.current?.id !== modelId) {
-      setQueuedMessage(true)
-      startModel(modelId)
-      await waitForModelStarting(modelId)
-      setQueuedMessage(false)
+      await startModel(modelId)
     }
     setIsGeneratingResponse(true)
     if (currentMessage.role !== ChatCompletionRole.User) {
@@ -364,8 +361,7 @@ export default function useSendChatMessage() {
 
     if (modelRef.current?.id !== modelId) {
       setQueuedMessage(true)
-      startModel(modelId)
-      await waitForModelStarting(modelId)
+      await startModel(modelId)
       setQueuedMessage(false)
     }
     setIsGeneratingResponse(true)
@@ -373,19 +369,6 @@ export default function useSendChatMessage() {
 
     setReloadModel(false)
     setEngineParamsUpdate(false)
-  }
-
-  const waitForModelStarting = async (modelId: string) => {
-    return new Promise<void>((resolve) => {
-      setTimeout(async () => {
-        if (modelRef.current?.id !== modelId && !loadModelFailedRef.current) {
-          await waitForModelStarting(modelId)
-          resolve()
-        } else {
-          resolve()
-        }
-      }, 200)
-    })
   }
 
   return {

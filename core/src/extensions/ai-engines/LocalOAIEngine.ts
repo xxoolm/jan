@@ -26,7 +26,7 @@ export abstract class LocalOAIEngine extends OAIEngine {
   /**
    * Load the model.
    */
-  async loadModel(model: Model) {
+  override async loadModel(model: Model): Promise<void> {
     if (model.engine.toString() !== this.provider) return
 
     const modelFolder = await joinPath([await getJanDataFolderPath(), this.modelFolder, model.id])
@@ -42,24 +42,22 @@ export abstract class LocalOAIEngine extends OAIEngine {
     )
 
     if (res?.error) {
-      events.emit(ModelEvent.OnModelFail, {
-        ...model,
-        error: res.error,
-      })
-      return
+      events.emit(ModelEvent.OnModelFail, { error: res.error })
+      return Promise.reject(res.error)
     } else {
       this.loadedModel = model
       events.emit(ModelEvent.OnModelReady, model)
+      return Promise.resolve()
     }
   }
   /**
    * Stops the model.
    */
-  unloadModel(model: Model) {
-    if (model.engine && model.engine?.toString() !== this.provider) return
-    this.loadedModel = undefined
+  override async unloadModel(model?: Model): Promise<void> {
+    if (model?.engine && model.engine?.toString() !== this.provider) return
 
-    executeOnMain(this.nodeModule, this.unloadModelFunctionName).then(() => {
+    this.loadedModel = undefined
+    return executeOnMain(this.nodeModule, this.unloadModelFunctionName).then(() => {
       events.emit(ModelEvent.OnModelStopped, {})
     })
   }
