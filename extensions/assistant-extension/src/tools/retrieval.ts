@@ -18,7 +18,7 @@ export class RetrievalTool extends InferenceTool {
     tool?: AssistantTool
   ): Promise<MessageRequest> {
     if (!data.model || !data.messages) {
-      return Promise.resolve(this.normalize(data))
+      return Promise.resolve(data)
     }
 
     const latestMessage = data.messages[data.messages.length - 1]
@@ -35,9 +35,14 @@ export class RetrievalTool extends InferenceTool {
         await executeOnMain(
           NODE,
           'toolRetrievalIngestNewDocument',
+          data.thread?.id,
           docFile,
-          data.model?.engine
+          data.model?.id,
+          data.model?.engine,
+          tool?.useTimeWeightedRetriever ?? false
         )
+      } else {
+        return Promise.resolve(data)
       }
     } else if (
       // Check whether we need to ingest document or not
@@ -48,7 +53,7 @@ export class RetrievalTool extends InferenceTool {
     ) {
       // No document ingested, reroute the result to inference engine
 
-      return Promise.resolve(this.normalize(data))
+      return Promise.resolve(data)
     }
     // 2. Load agent on thread changed
     if (this.retrievalThreadId !== data.threadId) {
@@ -75,7 +80,8 @@ export class RetrievalTool extends InferenceTool {
       const retrievalResult = await executeOnMain(
         NODE,
         'toolRetrievalQueryResult',
-        prompt
+        prompt,
+        tool?.useTimeWeightedRetriever ?? false
       )
       console.debug('toolRetrievalQueryResult', retrievalResult)
 

@@ -6,6 +6,7 @@ import { atom, useAtomValue } from 'jotai'
 
 import { activeModelAtom } from './useActiveModel'
 
+import { activeAssistantAtom } from '@/helpers/atoms/Assistant.atom'
 import { downloadedModelsAtom } from '@/helpers/atoms/Model.atom'
 import { activeThreadAtom } from '@/helpers/atoms/Thread.atom'
 
@@ -28,10 +29,12 @@ export default function useRecommendedModel() {
   const [recommendedModel, setRecommendedModel] = useState<Model | undefined>()
   const activeThread = useAtomValue(activeThreadAtom)
   const downloadedModels = useAtomValue(downloadedModelsAtom)
+  const activeAssistant = useAtomValue(activeAssistantAtom)
 
   const getAndSortDownloadedModels = useCallback(async (): Promise<Model[]> => {
     const models = downloadedModels.sort((a, b) =>
-      a.engine !== InferenceEngine.nitro && b.engine === InferenceEngine.nitro
+      a.engine !== InferenceEngine.cortex_llamacpp &&
+      b.engine === InferenceEngine.cortex_llamacpp
         ? 1
         : -1
     )
@@ -43,8 +46,9 @@ export default function useRecommendedModel() {
     Model | undefined
   > => {
     const models = await getAndSortDownloadedModels()
-    if (!activeThread) return
-    const modelId = activeThread.assistants[0]?.model.id
+
+    if (!activeThread || !activeAssistant) return
+    const modelId = activeAssistant.model.id
     const model = models.find((model) => model.id === modelId)
 
     if (model) {
@@ -63,6 +67,7 @@ export default function useRecommendedModel() {
     if (models.length === 0) {
       // if we have no downloaded models, then can't recommend anything
       console.debug("No downloaded models, can't recommend anything")
+      setRecommendedModel(undefined)
       return
     }
 
@@ -72,9 +77,6 @@ export default function useRecommendedModel() {
     // if we don't have [lastUsedModelId], then we can just use the first model
     // in the downloaded list
     if (!lastUsedModelId) {
-      console.debug(
-        `No last used model, using first model in list ${models[0].id}}`
-      )
       setRecommendedModel(models[0])
       return
     }
@@ -90,7 +92,6 @@ export default function useRecommendedModel() {
       return
     }
 
-    console.debug(`Using last used model ${lastUsedModel.id}`)
     setRecommendedModel(lastUsedModel)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getAndSortDownloadedModels, activeThread])
@@ -99,5 +100,9 @@ export default function useRecommendedModel() {
     getRecommendedModel()
   }, [getRecommendedModel])
 
-  return { recommendedModel, downloadedModels: sortedModels }
+  return {
+    recommendedModel,
+    downloadedModels: sortedModels,
+    setRecommendedModel,
+  }
 }

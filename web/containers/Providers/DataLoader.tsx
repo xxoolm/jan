@@ -1,34 +1,43 @@
 'use client'
 
-import { Fragment, ReactNode, useEffect } from 'react'
+import { Fragment, useEffect } from 'react'
 
-import { AppConfiguration, getUserHomePath, joinPath } from '@janhq/core'
+import { AppConfiguration, getUserHomePath } from '@janhq/core'
 import { useSetAtom } from 'jotai'
 
 import useAssistants from '@/hooks/useAssistants'
+import useEngines from '@/hooks/useEngines'
 import useGetSystemResources from '@/hooks/useGetSystemResources'
 import useModels from '@/hooks/useModels'
 import useThreads from '@/hooks/useThreads'
+
+import { SettingScreenList } from '@/screens/Settings'
 
 import { defaultJanDataFolderAtom } from '@/helpers/atoms/App.atom'
 import {
   janDataFolderPathAtom,
   quickAskEnabledAtom,
 } from '@/helpers/atoms/AppConfig.atom'
+import { janSettingScreenAtom } from '@/helpers/atoms/Setting.atom'
 
-type Props = {
-  children: ReactNode
-}
-
-const DataLoader: React.FC<Props> = ({ children }) => {
+const DataLoader: React.FC = () => {
   const setJanDataFolderPath = useSetAtom(janDataFolderPathAtom)
   const setQuickAskEnabled = useSetAtom(quickAskEnabledAtom)
   const setJanDefaultDataFolder = useSetAtom(defaultJanDataFolderAtom)
+  const setJanSettingScreen = useSetAtom(janSettingScreenAtom)
+  const { getData: loadModels } = useModels()
+  const { getData: loadEngines } = useEngines()
 
-  useModels()
   useThreads()
   useAssistants()
   useGetSystemResources()
+
+  useEffect(() => {
+    // Load data once
+    loadModels()
+    loadEngines()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     window.core?.api
@@ -41,17 +50,23 @@ const DataLoader: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     async function getDefaultJanDataFolder() {
-      const homePath = await getUserHomePath()
-      const defaultJanDataFolder = await joinPath([homePath, 'jan'])
+      const defaultJanDataFolder = await getUserHomePath()
 
       setJanDefaultDataFolder(defaultJanDataFolder)
     }
     getDefaultJanDataFolder()
   }, [setJanDefaultDataFolder])
 
+  useEffect(() => {
+    const janSettingScreen = SettingScreenList.filter(
+      (screen) => window.electronAPI || screen !== 'Extensions'
+    )
+    setJanSettingScreen(janSettingScreen)
+  }, [setJanSettingScreen])
+
   console.debug('Load Data...')
 
-  return <Fragment>{children}</Fragment>
+  return <Fragment></Fragment>
 }
 
 export default DataLoader

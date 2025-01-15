@@ -31,6 +31,12 @@ export abstract class OAIEngine extends AIEngine {
   // The loaded model instance
   loadedModel: Model | undefined
 
+  // Transform the payload
+  transformPayload?: Function
+
+  // Transform the response
+  transformResponse?: Function
+
   /**
    * On extension load, subscribe to events.
    */
@@ -48,10 +54,24 @@ export abstract class OAIEngine extends AIEngine {
   /*
    * Inference request
    */
-  override inference(data: MessageRequest) {
-    if (data.model?.engine?.toString() !== this.provider) return
+  override async inference(data: MessageRequest) {
+    if (!data.model?.id) {
+      events.emit(MessageEvent.OnMessageResponse, {
+        status: MessageStatus.Error,
+        content: [
+          {
+            type: ContentType.Text,
+            text: {
+              value: 'No model ID provided',
+              annotations: [],
+            },
+          },
+        ],
+      })
+      return
+    }
 
-    const timestamp = Date.now()
+    const timestamp = Date.now() / 1000
     const message: ThreadMessage = {
       id: ulid(),
       thread_id: data.threadId,
@@ -60,8 +80,8 @@ export abstract class OAIEngine extends AIEngine {
       role: ChatCompletionRole.Assistant,
       content: [],
       status: MessageStatus.Pending,
-      created: timestamp,
-      updated: timestamp,
+      created_at: timestamp,
+      completed_at: timestamp,
       object: 'thread.message',
     }
 
@@ -77,12 +97,24 @@ export abstract class OAIEngine extends AIEngine {
       ...data.model,
     }
 
+    const header = await this.headers()
+    let requestBody = {
+      messages: data.messages ?? [],
+      model: model.id,
+      stream: true,
+      ...model.parameters,
+    }
+    if (this.transformPayload) {
+      requestBody = this.transformPayload(requestBody)
+    }
+
     requestInference(
       this.inferenceUrl,
-      data.messages ?? [],
+      requestBody,
       model,
       this.controller,
-      this.headers()
+      header,
+      this.transformResponse
     ).subscribe({
       next: (content: any) => {
         const messageContent: ThreadContent = {
@@ -106,6 +138,13 @@ export abstract class OAIEngine extends AIEngine {
           return
         }
         message.status = MessageStatus.Error
+        message.content[0] = {
+          type: ContentType.Text,
+          text: {
+            value: err.message,
+            annotations: [],
+          },
+        }
         message.error_code = err.code
         events.emit(MessageEvent.OnMessageUpdate, message)
       },
@@ -123,7 +162,7 @@ export abstract class OAIEngine extends AIEngine {
   /**
    * Headers for the inference request
    */
-  headers(): HeadersInit {
+  async headers(): Promise<HeadersInit> {
     return {}
   }
 }

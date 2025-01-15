@@ -1,3 +1,5 @@
+import { ChatCompletionMessage } from '../inference'
+
 /**
  * Native Route APIs
  * @description Enum of all the routes exposed by the app
@@ -7,8 +9,15 @@ export enum NativeRoute {
   openAppDirectory = 'openAppDirectory',
   openFileExplore = 'openFileExplorer',
   selectDirectory = 'selectDirectory',
-  selectModelFiles = 'selectModelFiles',
+  selectFiles = 'selectFiles',
   relaunch = 'relaunch',
+  setNativeThemeLight = 'setNativeThemeLight',
+  setNativeThemeDark = 'setNativeThemeDark',
+
+  setMinimizeApp = 'setMinimizeApp',
+  setCloseApp = 'setCloseApp',
+  setMaximizeApp = 'setMaximizeApp',
+  showOpenMenu = 'showOpenMenu',
 
   hideQuickAskWindow = 'hideQuickAskWindow',
   sendQuickAskInput = 'sendQuickAskInput',
@@ -17,6 +26,11 @@ export enum NativeRoute {
   showMainWindow = 'showMainWindow',
 
   quickAskSizeUpdated = 'quickAskSizeUpdated',
+  ackDeepLink = 'ackDeepLink',
+  factoryReset = 'factoryReset',
+
+  startServer = 'startServer',
+  stopServer = 'stopServer',
 }
 
 /**
@@ -27,12 +41,10 @@ export enum AppRoute {
   getAppConfigurations = 'getAppConfigurations',
   updateAppConfiguration = 'updateAppConfiguration',
   joinPath = 'joinPath',
+  dirName = 'dirName',
   isSubdirectory = 'isSubdirectory',
   baseName = 'baseName',
-  startServer = 'startServer',
-  stopServer = 'stopServer',
   log = 'log',
-  logServer = 'logServer',
   systemInformation = 'systemInformation',
   showToast = 'showToast',
 }
@@ -44,6 +56,9 @@ export enum AppEvent {
 
   onUserSubmitQuickAsk = 'onUserSubmitQuickAsk',
   onSelectedText = 'onSelectedText',
+
+  onDeepLink = 'onDeepLink',
+  onMainViewStateChange = 'onMainViewStateChange',
 }
 
 export enum DownloadRoute {
@@ -58,6 +73,8 @@ export enum DownloadEvent {
   onFileDownloadUpdate = 'onFileDownloadUpdate',
   onFileDownloadError = 'onFileDownloadError',
   onFileDownloadSuccess = 'onFileDownloadSuccess',
+  onFileDownloadStopped = 'onFileDownloadStopped',
+  onFileDownloadStarted = 'onFileDownloadStarted',
   onFileUnzipSuccess = 'onFileUnzipSuccess',
 }
 
@@ -78,7 +95,6 @@ export enum ExtensionRoute {
 }
 export enum FileSystemRoute {
   appendFileSync = 'appendFileSync',
-  copyFileSync = 'copyFileSync',
   unlinkSync = 'unlinkSync',
   existsSync = 'existsSync',
   readdirSync = 'readdirSync',
@@ -88,13 +104,13 @@ export enum FileSystemRoute {
   writeFileSync = 'writeFileSync',
 }
 export enum FileManagerRoute {
-  syncFile = 'syncFile',
   copyFile = 'copyFile',
   getJanDataFolderPath = 'getJanDataFolderPath',
   getResourcePath = 'getResourcePath',
   getUserHomePath = 'getUserHomePath',
   fileStat = 'fileStat',
   writeBlob = 'writeBlob',
+  getGgufFiles = 'getGgufFiles',
 }
 
 export type ApiFunction = (...args: any[]) => any
@@ -154,3 +170,8 @@ export const APIEvents = [
   ...Object.values(DownloadEvent),
   ...Object.values(LocalImportModelEvent),
 ]
+export type PayloadType = {
+  messages: ChatCompletionMessage[]
+  model: string
+  stream: boolean
+}

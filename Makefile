@@ -1,26 +1,32 @@
 # Makefile for Jan Electron App - Build, Lint, Test, and Clean
 
+REPORT_PORTAL_URL ?= ""
+REPORT_PORTAL_API_KEY ?= ""
+REPORT_PORTAL_PROJECT_NAME ?= ""
+REPORT_PORTAL_LAUNCH_NAME ?= "Jan App"
+REPORT_PORTAL_DESCRIPTION ?= "Jan App report"
+
 # Default target, does nothing
 all:
 	@echo "Specify a target to run"
 
-# Builds the UI kit
-build-uikit:
-ifeq ($(OS),Windows_NT)
-	cd uikit && yarn config set network-timeout 300000 && yarn install && yarn build
-else
-	cd uikit && yarn install && yarn build
-endif
+# Config yarn version
+
+config-yarn:
+	corepack enable
+	corepack prepare yarn@4.5.3 --activate
+	yarn --version
+	yarn config set -H enableImmutableInstalls false
 
 # Installs yarn dependencies and builds core and extensions
-install-and-build: build-uikit
+install-and-build: config-yarn
 ifeq ($(OS),Windows_NT)
-	yarn config set network-timeout 300000
+	echo "skip"
 endif
-	yarn global add turbo
+	yarn install
+	yarn build:joi
 	yarn build:core
 	yarn build:server
-	yarn install
 	yarn build:extensions
 
 check-file-counts: install-and-build
@@ -37,10 +43,68 @@ dev: check-file-counts
 lint: check-file-counts
 	yarn lint
 
+update-playwright-config:
+ifeq ($(OS),Windows_NT)
+	echo -e "const RPconfig = {\n\
+	    apiKey: '$(REPORT_PORTAL_API_KEY)',\n\
+	    endpoint: '$(REPORT_PORTAL_URL)',\n\
+	    project: '$(REPORT_PORTAL_PROJECT_NAME)',\n\
+	    launch: '$(REPORT_PORTAL_LAUNCH_NAME)',\n\
+	    attributes: [\n\
+	        {\n\
+	            key: 'key',\n\
+	            value: 'value',\n\
+	        },\n\
+	        {\n\
+	            value: 'value',\n\
+	        },\n\
+	    ],\n\
+	    description: '$(REPORT_PORTAL_DESCRIPTION)',\n\
+	}\n$$(cat electron/playwright.config.ts)" > electron/playwright.config.ts;
+	sed -i "s/^  reporter: .*/    reporter: [['@reportportal\/agent-js-playwright', RPconfig]],/" electron/playwright.config.ts
+
+else ifeq ($(shell uname -s),Linux)
+	echo "const RPconfig = {\n\
+	    apiKey: '$(REPORT_PORTAL_API_KEY)',\n\
+	    endpoint: '$(REPORT_PORTAL_URL)',\n\
+	    project: '$(REPORT_PORTAL_PROJECT_NAME)',\n\
+	    launch: '$(REPORT_PORTAL_LAUNCH_NAME)',\n\
+	    attributes: [\n\
+	        {\n\
+	            key: 'key',\n\
+	            value: 'value',\n\
+	        },\n\
+	        {\n\
+	            value: 'value',\n\
+	        },\n\
+	    ],\n\
+	    description: '$(REPORT_PORTAL_DESCRIPTION)',\n\
+	}\n$$(cat electron/playwright.config.ts)" > electron/playwright.config.ts;
+	sed -i "s/^  reporter: .*/    reporter: [['@reportportal\/agent-js-playwright', RPconfig]],/" electron/playwright.config.ts
+else
+	echo "const RPconfig = {\n\
+	    apiKey: '$(REPORT_PORTAL_API_KEY)',\n\
+	    endpoint: '$(REPORT_PORTAL_URL)',\n\
+	    project: '$(REPORT_PORTAL_PROJECT_NAME)',\n\
+	    launch: '$(REPORT_PORTAL_LAUNCH_NAME)',\n\
+	    attributes: [\n\
+	        {\n\
+	            key: 'key',\n\
+	            value: 'value',\n\
+	        },\n\
+	        {\n\
+	            value: 'value',\n\
+	        },\n\
+	    ],\n\
+	    description: '$(REPORT_PORTAL_DESCRIPTION)',\n\
+	}\n$$(cat electron/playwright.config.ts)" > electron/playwright.config.ts;
+	sed -i '' "s|^  reporter: .*|    reporter: [['@reportportal\/agent-js-playwright', RPconfig]],|" electron/playwright.config.ts
+endif
+
 # Testing
 test: lint
 	yarn build:test
-	yarn test:unit
+	yarn test:coverage
 	yarn test
 
 # Builds and publishes the app
@@ -53,19 +117,24 @@ build: check-file-counts
 
 clean:
 ifeq ($(OS),Windows_NT)
-	powershell -Command "Get-ChildItem -Path . -Include node_modules, .next, dist, build, out -Recurse -Directory | Remove-Item -Recurse -Force"
-	powershell -Command "Get-ChildItem -Path . -Include package-lock.json -Recurse -File | Remove-Item -Recurse -Force"
-	powershell -Command "Remove-Item -Recurse -Force ./pre-install/*.tgz"
-	powershell -Command "Remove-Item -Recurse -Force ./electron/pre-install/*.tgz"
-	powershell -Command "if (Test-Path \"$($env:USERPROFILE)\jan\extensions\") { Remove-Item -Path \"$($env:USERPROFILE)\jan\extensions\" -Recurse -Force }"
+	-powershell -Command "Get-ChildItem -Path . -Include node_modules, .next, dist, build, out, .turbo, .yarn -Recurse -Directory | Remove-Item -Recurse -Force"
+	-powershell -Command "Get-ChildItem -Path . -Include package-lock.json, tsconfig.tsbuildinfo -Recurse -File | Remove-Item -Recurse -Force"
+	-powershell -Command "Remove-Item -Recurse -Force ./pre-install/*.tgz"
+	-powershell -Command "Remove-Item -Recurse -Force ./extensions/*/*.tgz"
+	-powershell -Command "Remove-Item -Recurse -Force ./electron/pre-install/*.tgz"
+	-powershell -Command "if (Test-Path \"$($env:USERPROFILE)\jan\extensions\") { Remove-Item -Path \"$($env:USERPROFILE)\jan\extensions\" -Recurse -Force }"
 else ifeq ($(shell uname -s),Linux)
 	find . -name "node_modules" -type d -prune -exec rm -rf '{}' +
 	find . -name ".next" -type d -exec rm -rf '{}' +
 	find . -name "dist" -type d -exec rm -rf '{}' +
 	find . -name "build" -type d -exec rm -rf '{}' +
 	find . -name "out" -type d -exec rm -rf '{}' +
+	find . -name ".turbo" -type d -exec rm -rf '{}' +
+	find . -name ".yarn" -type d -exec rm -rf '{}' +
 	find . -name "packake-lock.json" -type f -exec rm -rf '{}' +
+	find . -name "package-lock.json" -type f -exec rm -rf '{}' +
 	rm -rf ./pre-install/*.tgz
+	rm -rf ./extensions/*/*.tgz
 	rm -rf ./electron/pre-install/*.tgz
 	rm -rf "~/jan/extensions"
 	rm -rf "~/.cache/jan*"
@@ -75,8 +144,11 @@ else
 	find . -name "dist" -type d -exec rm -rf '{}' +
 	find . -name "build" -type d -exec rm -rf '{}' +
 	find . -name "out" -type d -exec rm -rf '{}' +
-	find . -name "packake-lock.json" -type f -exec rm -rf '{}' +
+	find . -name ".turbo" -type d -exec rm -rf '{}' +
+	find . -name ".yarn" -type d -exec rm -rf '{}' +
+	find . -name "package-lock.json" -type f -exec rm -rf '{}' +
 	rm -rf ./pre-install/*.tgz
+	rm -rf ./extensions/*/*.tgz
 	rm -rf ./electron/pre-install/*.tgz
 	rm -rf ~/jan/extensions
 	rm -rf ~/Library/Caches/jan*
